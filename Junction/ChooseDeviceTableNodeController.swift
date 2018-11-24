@@ -13,12 +13,14 @@ import Bond
 import SwiftyJSON
 import Alamofire
 import UIKit
+import ScrollableGraphView
 
 let lowestHRBound = 60.0 // 140 in prod
 let highestHRBound = 110.0 // 240 in prod
 
 let highestRRMultiplier = 2.0
 let historyItemsCount = 5
+let graphItemsCount = 50
 
 class Patient {
     enum ConnectionStatus {
@@ -33,36 +35,50 @@ class Patient {
     var rrHistory = MutableObservableArray<Double>([])
     let connectionStatus: Observable<ConnectionStatus> = Observable(ConnectionStatus.notConnected)
     let movesenseDevice: MovesenseDevice
+    let bluetoothId: String
 
-    init(sectorName: String, patientId: String, movesenseDevice: MovesenseDevice) {
+    init(sectorName: String, patientId: String, movesenseDevice: MovesenseDevice, bluetoothId: String) {
         self.sectorName = sectorName
         self.patientId = patientId
         self.currentHeartRate = Observable(nil)
         self.movesenseDevice = movesenseDevice
+        self.bluetoothId = bluetoothId
     }
     
     func getRank() -> Int {
         let avgHR = self.getAverageHeartRate()
 
-        let rrLowerBound = rrHistory.array.min() ?? 0
-        let rrHighBound = rrHistory.array.max() ?? 0
+        let lastItems = self.rrHistory.array.suffix(historyItemsCount)
+        
+        let rrLowerBound = lastItems.min() ?? 0
+        let rrHighBound = lastItems.max() ?? 0
         
         return Int(avgHR + rrHighBound - rrLowerBound)
     }
     
     func getAverageHeartRate() -> Double {
-        let sum = self.heartRateHistory.array.reduce(0) { $0 + $1 }
-        let avg = Double(sum) / Double(self.heartRateHistory.count)
+        let lastItems = self.heartRateHistory.array.suffix(historyItemsCount)
+        
+        let sum = lastItems.reduce(0) { $0 + $1 }
+        let avg = Double(sum) / Double(lastItems.count)
         
         return avg
     }
     
     func getAverageRR() -> Double {
-        let sum = self.rrHistory.array.reduce(0) { $0 + $1 }
-        let avg = Double(sum) / Double(self.rrHistory.count)
+        let lastItems = self.rrHistory.array.suffix(historyItemsCount)
+        let sum = lastItems.reduce(0) { $0 + $1 }
+        let avg = Double(sum) / Double(lastItems.count)
         
         return avg
     }
+}
+
+struct PatientBlueprint {
+    let uniqueId: String
+    let sectorName: String
+    let deviceId: String
+    let bluetoothId: String
 }
 
 class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
@@ -71,6 +87,11 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
     private var bleOnOff = false
     private var refreshControl: UIRefreshControl?
     private var connectedToDeviceWithSerial: String?
+    
+    let patientBlueprints: [PatientBlueprint] = [
+        PatientBlueprint(uniqueId: "Marcis", sectorName: "Sector #1", deviceId: "175030001053", bluetoothId: "TODO1"),
+        PatientBlueprint(uniqueId: "Austris", sectorName: "Sector #2", deviceId: "175030000988", bluetoothId: "TODO2"),
+    ]
     
     var tableNode: ASTableNode {
         return node as! ASTableNode
@@ -93,10 +114,9 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        self.title = "Choose device"
+        self.title = "Help.io"
         
         self.refreshControl = UIRefreshControl()
-        self.refreshControl!.backgroundColor = Movesense.MOVESENSE_COLOR
         self.refreshControl!.tintColor = UIColor.white
         self.refreshControl!.addTarget(self, action: #selector(self.startScan), for: .valueChanged)
         tableNode.view.refreshControl = self.refreshControl
@@ -120,7 +140,6 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
                                     
                 patient.currentHeartRate.value = json["average"].doubleValue
                 patient.currentRR.value = json["rrData"][0].doubleValue
-                self.reorderRowsBasedOnRank()
             }, onError: { (_, path, message) in
                 print("error: \(message)")
             })
@@ -154,26 +173,6 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         self.refreshControl!.endRefreshing()
     }
     
-    private func reorderRowsBasedOnRank() {
-//        if patients.first(where: { return $0.currentRR.value == nil || $0.currentHeartRate.value == nil }) != nil {
-//            return
-//        }
-//
-//        let oldIndexPaths: [Int: Patient] = [:]
-//        for i in patients.enumerated() {
-//            oldIndexPaths.append([IndexPath(row: i, section: 0): patients[i]])
-//        }
-//
-//        patients = patients.sorted(by: { $0.getRank() > $1.getRank() })
-//        tableNode.performBatch(animated: true, updates: {
-//            for (oldIndex, patient) in oldIndexPaths {
-//
-//            }
-//            tableNode.moveRow(at: <#T##IndexPath#>, to: <#T##IndexPath#>)
-//            tableNode.reloadData()
-//        }, completion: nil)
-    }
-    
     @objc func startScan() {
         func reloadTableNode() {
             tableNode.reloadData()
@@ -185,6 +184,8 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         
         if self.bleOnOff {
             self.movesense.startScan{ _ in
+                if self.movesense.getDeviceCount() < self.patientBlueprints.count { return }
+                
                 self.movesense.stopScan()
                 self.createPatients()
                 endRefreshing()
@@ -219,16 +220,14 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
             return self.movesense.nthDevice($0)!
         }
         
-        let patientDict: [String: String] = [
-            "175030001053": "Marcis",
-            "175030000988": "Austris"
-        ]
-        
-        let patients: [Patient] = devices.compactMap {
-            if let patientName = patientDict[$0.serial] {
-                return Patient(sectorName: "Rand sector", patientId: patientName, movesenseDevice: $0)
+        let patients: [Patient] = devices.compactMap { device in
+            if let patientBlueprint = patientBlueprints.first(where: { $0.deviceId == device.serial }) {
+                return Patient(sectorName: patientBlueprint.sectorName,
+                               patientId: patientBlueprint.uniqueId,
+                               movesenseDevice: device, bluetoothId:
+                               patientBlueprint.bluetoothId)
             }
-            
+        
             return nil
         }
         
@@ -300,6 +299,7 @@ class PatientCellNode: ASCellNode {
     private let patientCurrentRRTextNode = ASTextNode()
     private let heartImageNode = ASImageNode()
     private let connectButtonNode = ASButtonNode()
+    private var graphWrapperNode: ASDisplayNode?
     
     var connectToDevice: (() -> ())?
     var criticalState: ((String) -> ())?
@@ -376,23 +376,49 @@ class PatientCellNode: ASCellNode {
         
         self.connectButtonNode.addTarget(self, action: #selector(didTapConnectButton), forControlEvents: .touchUpInside)
         
+        graphWrapperNode = ASDisplayNode.init(viewBlock: { [weak self] in
+            guard let self = self else { return UIView() }
+           
+            let graphView = ScrollableGraphView(frame: CGRect(x: -100, y: self.frame.origin.y, width: self.frame.width + 20, height: self.frame.height), dataSource: self)
+            let linePlot = LinePlot(identifier: patient.movesenseDevice.serial)
+            linePlot.lineStyle = ScrollableGraphViewLineStyle.smooth
+            let referenceLines = ReferenceLines()
+            referenceLines.shouldShowReferenceLines = false
+            graphView.addPlot(plot: linePlot)
+            graphView.addReferenceLines(referenceLines: referenceLines)
+            
+            return graphView
+        })
+        
+        graphWrapperNode?.style.preferredSize = CGSize(width: self.frame.width, height: 100)
+        
         self.automaticallyManagesSubnodes = true
     }
     
     private func addToHistory(bps: Double) {
         patient.heartRateHistory.append(bps)
         
-        if patient.heartRateHistory.count > historyItemsCount {
+        if patient.heartRateHistory.count > graphItemsCount {
             patient.heartRateHistory.remove(at: 0)
         }
         
         checkAvgHeartRate()
+        
+        if patient.heartRateHistory.count < 4 { return }
+        DispatchQueue.main.async {
+            guard let graphView = self.graphWrapperNode?.view as? ScrollableGraphView else { return }
+            
+            graphView.dataPointSpacing = self.frame.width / CGFloat(self.patient.heartRateHistory.count)
+            graphView.rangeMin = (self.patient.heartRateHistory.array.min() ?? 0)
+            graphView.rangeMax = (self.patient.heartRateHistory.array.max() ?? 0)
+            graphView.reload()
+        }
     }
     
     private func addToHistory(rr: Double) {
         patient.rrHistory.append(rr)
         
-        if patient.rrHistory.count > historyItemsCount {
+        if patient.rrHistory.count > graphItemsCount {
             patient.rrHistory.remove(at: 0)
         }
         
@@ -485,8 +511,30 @@ class PatientCellNode: ASCellNode {
             headerHorizontalStack,
             self.connectButtonNode
         ]
+        
+        if let graphWrapperNode = self.graphWrapperNode {
+            mainVerticalStack.children?.insert(graphWrapperNode, at: 1)
+        }
         mainVerticalStack.spacing = 15.0
         
         return ASInsetLayoutSpec(insets: UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12), child: mainVerticalStack)
+    }
+}
+
+extension PatientCellNode: ScrollableGraphViewDataSource {
+    func value(forPlot plot: Plot, atIndex pointIndex: Int) -> Double {
+        if pointIndex >= (patient.heartRateHistory.count - 1) {
+            return 0
+        }
+        
+        return patient.heartRateHistory[pointIndex]
+    }
+    
+    func label(atIndex pointIndex: Int) -> String {
+        return ""
+    }
+    
+    func numberOfPoints() -> Int {
+        return graphItemsCount
     }
 }
