@@ -89,8 +89,8 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
     private var connectedToDeviceWithSerial: String?
     
     let patientBlueprints: [PatientBlueprint] = [
-        PatientBlueprint(uniqueId: "Marcis", sectorName: "Sector #1", deviceId: "175030001053", bluetoothId: "TODO1"),
-        PatientBlueprint(uniqueId: "Austris", sectorName: "Sector #2", deviceId: "175030000988", bluetoothId: "TODO2"),
+        PatientBlueprint(uniqueId: "Marcis", sectorName: "Sector #1", deviceId: "175030001053", bluetoothId: "0x0001"),
+        PatientBlueprint(uniqueId: "Austris", sectorName: "Sector #2", deviceId: "175030000988", bluetoothId: "0x0002"),
     ]
     
     var tableNode: ASTableNode {
@@ -120,8 +120,6 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         self.refreshControl!.tintColor = UIColor.white
         self.refreshControl!.addTarget(self, action: #selector(self.startScan), for: .valueChanged)
         tableNode.view.refreshControl = self.refreshControl
-        
-        testConnection()
         
         self.movesense.setHandlers(deviceConnected: { serial in
             let firstPatient = self.patients.first {
@@ -197,13 +195,15 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         }
     }
     
-    func connectToDevice(device: MovesenseDevice) -> Bool {
+    func connectToDevice(device: MovesenseDevice, patient: Patient) -> Bool {
         self.movesense.stopScan()
         
         let serial = device.serial
         connectedToDeviceWithSerial = serial
         
         self.movesense.connectDevice(serial)
+        
+        self.sendMessage(to: patient, type: "setup")
         
         return true
     }
@@ -236,8 +236,8 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         self.tableNode.reloadData()
     }
     
-    private func testConnection() {
-        let url = URL(string: "http://10.100.5.16:3000/0x0001/critical")!
+    private func sendMessage(to patient: Patient, type: String) {
+        let url = URL(string: "http://10.100.5.16:3000/\(patient.bluetoothId)/\(type)")!
         
         Alamofire.request(url, method: .post, parameters: [:]).response { response in
             print(response)
@@ -253,7 +253,11 @@ extension ChooseDeviceTableNodeController: ASTableDelegate, ASTableDataSource {
         return {
             let patientCellNode = PatientCellNode(patient: patient)
             patientCellNode.connectToDevice = {
-                _ = self.connectToDevice(device: patient.movesenseDevice)
+                _ = self.connectToDevice(device: patient.movesenseDevice, patient: patient)
+            }
+            
+            patientCellNode.criticalState = { state in
+                self.sendMessage(to: patient, type: "critical")
             }
             return patientCellNode
         }
@@ -279,15 +283,6 @@ extension ChooseDeviceTableNodeController: ASTableDelegate, ASTableDataSource {
     
     func tableNode(_ tableNode: ASTableNode, numberOfRowsInSection section: Int) -> Int {
         return patients.count
-    }
-    
-    func tableNode(_ tableNode: ASTableNode, didSelectRowAt indexPath: IndexPath) {
-        self.movesense.stopScan()
-        self.refreshControl!.endRefreshing()
-        self.tableNode.reloadRows(at: [indexPath], with: .automatic)
-        
-        let device = self.movesense.nthDevice(indexPath.row)!
-        _ = self.connectToDevice(device: device)
     }
 }
 
