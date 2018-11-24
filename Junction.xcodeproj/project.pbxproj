@@ -16,7 +16,6 @@
 		7EC8C1C321A8B2160038BF4A /* libmds.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EC8C1C221A8B2160038BF4A /* libmds.a */; };
 		7EC8C1C521A8B2540038BF4A /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EC8C1C421A8B2540038BF4A /* libc++.tbd */; };
 		7EC8C1C721A8B2CD0038BF4A /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 7EC8C1C621A8B2CD0038BF4A /* libz.tbd */; };
-		7EC8C1C921A8B7250038BF4A /* DeviceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EC8C1C821A8B7250038BF4A /* DeviceViewController.swift */; };
 		DF0778DF07493BF224BBD6E4 /* Pods_Junction.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 51C3163D4E3C043B8E5EA932 /* Pods_Junction.framework */; };
 /* End PBXBuildFile section */
 
@@ -34,7 +33,6 @@
 		7EC8C1C221A8B2160038BF4A /* libmds.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmds.a; path = "Pods/Movesense/IOS/Movesense/Release-iphoneos/libmds.a"; sourceTree = "<group>"; };
 		7EC8C1C421A8B2540038BF4A /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/libc++.tbd"; sourceTree = DEVELOPER_DIR; };
 		7EC8C1C621A8B2CD0038BF4A /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/libz.tbd; sourceTree = DEVELOPER_DIR; };
-		7EC8C1C821A8B7250038BF4A /* DeviceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceViewController.swift; sourceTree = "<group>"; };
 		F6A61D7A384C21D2974ED6BB /* Pods-Junction.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Junction.release.xcconfig"; path = "Pods/Target Support Files/Pods-Junction/Pods-Junction.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -80,7 +78,6 @@
 				7E2E8EF421A8679A00AE1782 /* Assets.xcassets */,
 				7E2E8EF621A8679A00AE1782 /* LaunchScreen.storyboard */,
 				7E2E8EF921A8679A00AE1782 /* Info.plist */,
-				7EC8C1C821A8B7250038BF4A /* DeviceViewController.swift */,
 			);
 			path = Junction;
 			sourceTree = "<group>";
@@ -216,6 +213,7 @@
 				"${BUILT_PRODUCTS_DIR}/PINRemoteImage/PINRemoteImage.framework",
 				"${BUILT_PRODUCTS_DIR}/PromiseKit/PromiseKit.framework",
 				"${BUILT_PRODUCTS_DIR}/ReactiveKit/ReactiveKit.framework",
+				"${BUILT_PRODUCTS_DIR}/ScrollableGraphView/ScrollableGraphView.framework",
 				"${BUILT_PRODUCTS_DIR}/SwiftyJSON/SwiftyJSON.framework",
 				"${BUILT_PRODUCTS_DIR}/Texture/AsyncDisplayKit.framework",
 			);
@@ -230,6 +228,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PINRemoteImage.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/PromiseKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ReactiveKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ScrollableGraphView.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyJSON.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AsyncDisplayKit.framework",
 			);
@@ -247,7 +246,6 @@
 			files = (
 				7E2E8EEC21A8679800AE1782 /* AppDelegate.swift in Sources */,
 				7EC8C1C021A89FCE0038BF4A /* BleController.swift in Sources */,
-				7EC8C1C921A8B7250038BF4A /* DeviceViewController.swift in Sources */,
 				7EC8C1BE21A89ECE0038BF4A /* MovesenseService.swift in Sources */,
 				7E2E8EEE21A8679800AE1782 /* ChooseDeviceTableNodeController.swift in Sources */,
 			);
@@ -391,6 +389,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = R5WBH4F458;
 				INFOPLIST_FILE = Junction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
@@ -411,6 +410,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = R5WBH4F458;
 				INFOPLIST_FILE = Junction/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",

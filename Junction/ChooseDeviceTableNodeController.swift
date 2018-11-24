@@ -12,11 +12,12 @@ import PromiseKit
 import Bond
 import SwiftyJSON
 import Alamofire
+import UIKit
 
-let lowestHRBound = 80.0 // 140 in prod
+let lowestHRBound = 60.0 // 140 in prod
 let highestHRBound = 110.0 // 240 in prod
 
-let highestRRMultiplier = 1.6
+let highestRRMultiplier = 2.0
 let historyItemsCount = 5
 
 class Patient {
@@ -39,6 +40,29 @@ class Patient {
         self.currentHeartRate = Observable(nil)
         self.movesenseDevice = movesenseDevice
     }
+    
+    func getRank() -> Int {
+        let avgHR = self.getAverageHeartRate()
+
+        let rrLowerBound = rrHistory.array.min() ?? 0
+        let rrHighBound = rrHistory.array.max() ?? 0
+        
+        return Int(avgHR + rrHighBound - rrLowerBound)
+    }
+    
+    func getAverageHeartRate() -> Double {
+        let sum = self.heartRateHistory.array.reduce(0) { $0 + $1 }
+        let avg = Double(sum) / Double(self.heartRateHistory.count)
+        
+        return avg
+    }
+    
+    func getAverageRR() -> Double {
+        let sum = self.rrHistory.array.reduce(0) { $0 + $1 }
+        let avg = Double(sum) / Double(self.rrHistory.count)
+        
+        return avg
+    }
 }
 
 class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
@@ -58,6 +82,8 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         super.init(node: ASTableNode())
         tableNode.delegate = self
         tableNode.dataSource = self
+        tableNode.backgroundColor = .white
+        node.backgroundColor = .white
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -74,6 +100,8 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         self.refreshControl!.tintColor = UIColor.white
         self.refreshControl!.addTarget(self, action: #selector(self.startScan), for: .valueChanged)
         tableNode.view.refreshControl = self.refreshControl
+        
+        testConnection()
         
         self.movesense.setHandlers(deviceConnected: { serial in
             let firstPatient = self.patients.first {
@@ -92,6 +120,7 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
                                     
                 patient.currentHeartRate.value = json["average"].doubleValue
                 patient.currentRR.value = json["rrData"][0].doubleValue
+                self.reorderRowsBasedOnRank()
             }, onError: { (_, path, message) in
                 print("error: \(message)")
             })
@@ -119,12 +148,30 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         }
         
         self.tableNode.reloadData()
-        
-        
     }
     
     private func scanEnded() {
         self.refreshControl!.endRefreshing()
+    }
+    
+    private func reorderRowsBasedOnRank() {
+//        if patients.first(where: { return $0.currentRR.value == nil || $0.currentHeartRate.value == nil }) != nil {
+//            return
+//        }
+//
+//        let oldIndexPaths: [Int: Patient] = [:]
+//        for i in patients.enumerated() {
+//            oldIndexPaths.append([IndexPath(row: i, section: 0): patients[i]])
+//        }
+//
+//        patients = patients.sorted(by: { $0.getRank() > $1.getRank() })
+//        tableNode.performBatch(animated: true, updates: {
+//            for (oldIndex, patient) in oldIndexPaths {
+//
+//            }
+//            tableNode.moveRow(at: <#T##IndexPath#>, to: <#T##IndexPath#>)
+//            tableNode.reloadData()
+//        }, completion: nil)
     }
     
     @objc func startScan() {
@@ -190,10 +237,13 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         self.tableNode.reloadData()
     }
     
-//    private func testConnection() {
-//        let url = URL(string: <#T##String#>)
-//        Alamofire.request(<#T##url: URLConvertible##URLConvertible#>, method: <#T##HTTPMethod#>, parameters: <#T##Parameters?#>, encoding: <#T##ParameterEncoding#>, headers: <#T##HTTPHeaders?#>)
-//    }
+    private func testConnection() {
+        let url = URL(string: "http://10.100.5.16:3000/0x0001/critical")!
+        
+        Alamofire.request(url, method: .post, parameters: [:]).response { response in
+            print(response)
+        }
+    }
 }
 
 extension ChooseDeviceTableNodeController: ASTableDelegate, ASTableDataSource {
@@ -230,7 +280,6 @@ extension ChooseDeviceTableNodeController: ASTableDelegate, ASTableDataSource {
     
     func tableNode(_ tableNode: ASTableNode, numberOfRowsInSection section: Int) -> Int {
         return patients.count
-//        return self.bleOnOff ? self.movesense.getDeviceCount() : 0;
     }
     
     func tableNode(_ tableNode: ASTableNode, didSelectRowAt indexPath: IndexPath) {
@@ -248,10 +297,12 @@ class PatientCellNode: ASCellNode {
     private let patienIdTextNode = ASTextNode()
     private let patientSectorTextNode = ASTextNode()
     private let patientCurrentHeartRateTextNode = ASTextNode()
+    private let patientCurrentRRTextNode = ASTextNode()
     private let heartImageNode = ASImageNode()
     private let connectButtonNode = ASButtonNode()
     
     var connectToDevice: (() -> ())?
+    var criticalState: ((String) -> ())?
 
     private let patient: Patient
 
@@ -262,14 +313,15 @@ class PatientCellNode: ASCellNode {
         
         patienIdTextNode.attributedText =
             NSAttributedString(string: patient.patientId,
-                               attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20)])
+                               attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 30)])
 
         patientSectorTextNode.attributedText =
             NSAttributedString(string: patient.sectorName,
-                               attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20)])
+                               attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 15)])
 
+        patientCurrentHeartRateTextNode.style.preferredSize = CGSize(width: 85, height: 20)
         _ = patient.currentHeartRate.observeNext { currentHeartRate in
-            let currentHeartRateFormatted = currentHeartRate == nil ? " " : "\(Int(currentHeartRate!)) BPS"
+            let currentHeartRateFormatted = currentHeartRate == nil ? " " : "\(Int(currentHeartRate!)) BPM"
             
             if let currentHeartRate = currentHeartRate {
                 self.addToHistory(bps: currentHeartRate)
@@ -280,27 +332,45 @@ class PatientCellNode: ASCellNode {
                                    attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20)])
         }
         
+        patientCurrentRRTextNode.style.preferredSize = CGSize(width: 85, height: 20)
         _ = patient.currentRR.observeNext { rr in
             if let rr = rr {
                 self.addToHistory(rr: rr)
             }
+            
+            let currentRRFormatted = rr == nil ? " " : "\(Int(rr!)) RR"
+            
+            self.patientCurrentRRTextNode.attributedText =
+                NSAttributedString(string: currentRRFormatted,
+                                   attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20)])
         }
         
         heartImageNode.image = UIImage(named: "cardiogram")
         heartImageNode.style.preferredSize = CGSize(width: 30, height: 30)
         
         _ = patient.connectionStatus.observeNext { connectionStatus in
+            var tintColor: UIColor = .black
             var connectionStatusText = ""
             switch connectionStatus {
             case .notConnected:
+                tintColor = .black
                 connectionStatusText = "Connect"
+                self.heartImageNode.isHidden = true
             case .connecting:
+                tintColor = .black
                 connectionStatusText = "Connecting"
+                self.heartImageNode.isHidden = true
             case .connected:
+                tintColor = .green
                 connectionStatusText = "Connected"
+                self.heartImageNode.isHidden = false
             }
             
-            let title = NSAttributedString(string: connectionStatusText, attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20)])
+            let title = NSAttributedString(string: connectionStatusText,
+                                           attributes: [
+                                            NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20),
+                                            NSAttributedString.Key.foregroundColor: tintColor
+                ])
             self.connectButtonNode.setAttributedTitle(title, for: .normal)
         }
         
@@ -315,6 +385,8 @@ class PatientCellNode: ASCellNode {
         if patient.heartRateHistory.count > historyItemsCount {
             patient.heartRateHistory.remove(at: 0)
         }
+        
+        checkAvgHeartRate()
     }
     
     private func addToHistory(rr: Double) {
@@ -323,23 +395,28 @@ class PatientCellNode: ASCellNode {
         if patient.rrHistory.count > historyItemsCount {
             patient.rrHistory.remove(at: 0)
         }
+        
+        checkAvgRR()
     }
     
     private func checkAvgHeartRate() {
-        let sum = patient.heartRateHistory.array.reduce(0) { $0 + $1 }
-        let avg = Double(sum) / Double(patient.heartRateHistory.count)
+        if patient.heartRateHistory.count < 5 { return }
+        
+        let avg = patient.getAverageHeartRate()
         
         if avg > lowestHRBound && avg < highestHRBound {
             print("average normal")
             return
         }
         
-        print("average out of bounds: \(avg)")
+        let message = "average HR out of bounds: \(Int(avg))"
+        print(message)
+        notifyNotGood(message: message)
     }
     
     private func checkAvgRR() {
-        let sum = patient.rrHistory.array.reduce(0) { $0 + $1 }
-        let avg = Double(sum) / Double(patient.rrHistory.count)
+        if patient.rrHistory.count < 5 { return }
+        let avg = patient.getAverageRR()
         
         guard let currentRR = patient.currentRR.value else { return }
         
@@ -348,7 +425,23 @@ class PatientCellNode: ASCellNode {
             return
         }
         
-        print("average RR out of bounds: \(avg)")
+        let message = "average RR out of bounds: \(Int(avg))"
+        print(message)
+        notifyNotGood(message: message)
+    }
+    
+    private func notifyNotGood(message: String) {
+        criticalState?(message)
+        
+        UIView.animate(withDuration: 1, animations: {
+            self.backgroundColor = .red
+        }, completion: { _ in
+            UIView.animate(withDuration: 1,
+                           delay: 5,
+                           animations: {
+                self.backgroundColor = .white
+            }, completion: nil)
+        })
     }
     
     @objc func didTapConnectButton() {
@@ -360,18 +453,40 @@ class PatientCellNode: ASCellNode {
 
     override func layoutSpecThatFits(_ constrainedSize: ASSizeRange) -> ASLayoutSpec {
         let patientTextsVerticalStack = ASStackLayoutSpec.vertical()
+        patientTextsVerticalStack.verticalAlignment = .center
         patientTextsVerticalStack.children = [self.patienIdTextNode, self.patientSectorTextNode]
-        patientTextsVerticalStack.spacing = 10.0
+        patientTextsVerticalStack.spacing = 3.0
         
-//        let heartRateInfoInsetSpec = ASInsetLayoutSpec(insets: UIEdgeInsets(top: 12, left: CGFloat.greatestFiniteMagnitude, bottom: CGFloat.greatestFiniteMagnitude, right: 12), child: self.patientCurrentHeartRateTextNode)
+        let patientHeartDataVerticalStack = ASStackLayoutSpec.vertical()
+        patientHeartDataVerticalStack.verticalAlignment = .center
+        patientHeartDataVerticalStack.horizontalAlignment = .right
+        patientHeartDataVerticalStack.children = [
+            self.patientCurrentRRTextNode,
+            self.patientCurrentHeartRateTextNode
+        ]
+        
+        let centeredHeartImageNodeSpec = ASCenterLayoutSpec(centeringOptions: .XY, sizingOptions: [], child: self.heartImageNode)
+        
+        let spacer = ASLayoutSpec()
+        spacer.style.flexGrow = 1.0
         
         let headerHorizontalStack = ASStackLayoutSpec.horizontal()
-        headerHorizontalStack.children = [patientTextsVerticalStack, self.heartImageNode, self.patientCurrentHeartRateTextNode]
-        headerHorizontalStack.spacing = 10.0
+        headerHorizontalStack.spacing = 5.0
+        headerHorizontalStack.children = [
+            patientTextsVerticalStack,
+            spacer,
+            centeredHeartImageNodeSpec,
+            patientHeartDataVerticalStack
+        ]
         
+        self.connectButtonNode.contentHorizontalAlignment = .right
         let mainVerticalStack = ASStackLayoutSpec.vertical()
-        mainVerticalStack.children = [headerHorizontalStack, self.connectButtonNode]
+        mainVerticalStack.children = [
+            headerHorizontalStack,
+            self.connectButtonNode
+        ]
+        mainVerticalStack.spacing = 15.0
         
-        return mainVerticalStack
+        return ASInsetLayoutSpec(insets: UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12), child: mainVerticalStack)
     }
 }

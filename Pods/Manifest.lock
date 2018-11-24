@@ -30,6 +30,7 @@ PODS:
   - PromiseKit/UIKit (6.5.3):
     - PromiseKit/CorePromise
   - ReactiveKit (3.9.7)
+  - ScrollableGraphView (4.0.6)
   - SwiftyJSON (4.2.0)
   - Texture (2.7):
     - Texture/PINRemoteImage (= 2.7)
@@ -44,6 +45,7 @@ DEPENDENCIES:
   - Bond
   - "Movesense (from `ssh://git@altssh.bitbucket.org:443/suunto/movesense-mobile-lib.git`)"
   - PromiseKit (~> 6.0)
+  - ScrollableGraphView
   - SwiftyJSON (~> 4.0)
   - Texture
 
@@ -57,6 +59,7 @@ SPEC REPOS:
     - PINRemoteImage
     - PromiseKit
     - ReactiveKit
+    - ScrollableGraphView
     - SwiftyJSON
     - Texture
 
@@ -79,9 +82,10 @@ SPEC CHECKSUMS:
   PINRemoteImage: d6d51c5d2adda55f1ce30c96e850b6c4ebd2856a
   PromiseKit: c609029bdd801f792551a504c695c7d3098b42cd
   ReactiveKit: 5f4c440715d671901c382ae6b42ed3337ce4699b
+  ScrollableGraphView: 4af35d4ea9ecdec665d34a74da51da161ddff8ac
   SwiftyJSON: c4bcba26dd9ec7a027fc8eade48e2c911f229e96
   Texture: 9d7e38965cf22ccd7cd9c249dd78b3f14e70ab6c
 
-PODFILE CHECKSUM: c50ef3385312ee9fb08bf65cc0007671f1d358ba
+PODFILE CHECKSUM: 9d7c5c5bbb1fea56d73a0dc7246ce20588826b88
 
 COCOAPODS: 1.5.0

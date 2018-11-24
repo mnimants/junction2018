@@ -8,4 +8,5 @@ target "Junction" do
   pod 'Alamofire', '~> 4.7'
   pod "PromiseKit", "~> 6.0"
   pod 'Bond'
+  pod 'ScrollableGraphView'
 end
