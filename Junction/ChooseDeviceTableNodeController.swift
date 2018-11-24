@@ -24,7 +24,7 @@ let graphItemsCount = 50
 
 class Patient {
     enum ConnectionStatus {
-        case notConnected, connecting, connected
+        case notConnected, evaluating, evaluated
     }
     
     let sectorName: String
@@ -37,6 +37,7 @@ class Patient {
     let movesenseDevice: MovesenseDevice
     let bluetoothId: String
     var criticalSent = false
+    var rank: Observable<Int?> = Observable(nil)
 
     init(sectorName: String, patientId: String, movesenseDevice: MovesenseDevice, bluetoothId: String) {
         self.sectorName = sectorName
@@ -46,7 +47,7 @@ class Patient {
         self.bluetoothId = bluetoothId
     }
     
-    func getRank() -> Int {
+    func setRank() {
         let avgHR = self.getAverageHeartRate()
 
         let lastItems = self.rrHistory.array.suffix(historyItemsCount)
@@ -54,7 +55,8 @@ class Patient {
         let rrLowerBound = lastItems.min() ?? 0
         let rrHighBound = lastItems.max() ?? 0
         
-        return Int(avgHR + rrHighBound - rrLowerBound)
+        rank = Observable(Int(avgHR + rrHighBound - rrLowerBound))
+        connectionStatus.value = .evaluated
     }
     
     func getAverageHeartRate() -> Double {
@@ -115,6 +117,7 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        tableNode.allowsSelection = false
         self.title = "Help.io"
         
         self.refreshControl = UIRefreshControl()
@@ -129,7 +132,7 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
             
             guard let patient = firstPatient else { return }
             
-            patient.connectionStatus.value = .connected
+            patient.connectionStatus.value = .evaluating
             
             self.movesense.subscribe(patient.movesenseDevice.serial, path: Movesense.HR_PATH,
                                       parameters: [:],
@@ -234,7 +237,29 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
         
         self.patients = patients
         
+        for patient in patients {
+            _ = patient.connectionStatus.observeNext { status in
+                guard status == .evaluated else { return }
+                self.reorderPatients()
+            }
+        }
+        
         self.tableNode.reloadData()
+    }
+
+    // HARDCODED
+    private func reorderPatients() {
+        return;
+        let rankForFirstPatient = self.patients[0].rank.value ?? 0
+        let rankForSecondPatient = self.patients[1].rank.value ?? 0
+        
+        if rankForSecondPatient > rankForFirstPatient {
+            self.tableNode.performBatch(animated: true, updates: {
+                self.tableNode.moveRow(at: IndexPath(row: 1, section: 0), to: IndexPath(row: 0, section: 0))
+            }, completion: { completed in
+                (self.patients[0], self.patients[1]) = (self.patients[1], self.patients[0])
+            })
+        }
     }
     
     private func sendMessage(to patient: Patient, type: String) {
@@ -336,7 +361,7 @@ class PatientCellNode: ASCellNode {
                 self.addToHistory(rr: rr)
             }
             
-            let currentRRFormatted = rr == nil ? " " : "\(Int(rr!)) RR"
+            let currentRRFormatted = rr == nil ? " " : "RR \(Int(rr!))"
             
             self.patientCurrentRRTextNode.attributedText =
                 NSAttributedString(string: currentRRFormatted,
@@ -347,27 +372,24 @@ class PatientCellNode: ASCellNode {
         heartImageNode.style.preferredSize = CGSize(width: 30, height: 30)
         
         _ = patient.connectionStatus.observeNext { connectionStatus in
-            var tintColor: UIColor = .black
             var connectionStatusText = ""
             switch connectionStatus {
             case .notConnected:
-                tintColor = .black
                 connectionStatusText = "Connect"
                 self.heartImageNode.isHidden = true
-            case .connecting:
-                tintColor = .black
-                connectionStatusText = "Connecting"
-                self.heartImageNode.isHidden = true
-            case .connected:
-                tintColor = .green
-                connectionStatusText = "Connected"
+            case .evaluating:
+                connectionStatusText = "Evaluating..."
+                self.heartImageNode.isHidden = false
+                self.attemptToSetRank()
+            case .evaluated:
+                connectionStatusText = "Severity: \(patient.rank.value!)"
                 self.heartImageNode.isHidden = false
             }
             
             let title = NSAttributedString(string: connectionStatusText,
                                            attributes: [
                                             NSAttributedString.Key.font: UIFont.systemFont(ofSize: 20),
-                                            NSAttributedString.Key.foregroundColor: tintColor
+                                            NSAttributedString.Key.foregroundColor: UIColor.black
                 ])
             self.connectButtonNode.setAttributedTitle(title, for: .normal)
         }
@@ -391,6 +413,18 @@ class PatientCellNode: ASCellNode {
         graphWrapperNode?.style.preferredSize = CGSize(width: self.frame.width, height: 100)
         
         self.automaticallyManagesSubnodes = true
+    }
+    
+    private func attemptToSetRank() {
+        if patient.heartRateHistory.count < 15 {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                self.attemptToSetRank()
+            }
+            
+            return
+        }
+        
+        patient.setRank()
     }
     
     private func addToHistory(bps: Double) {
@@ -424,6 +458,8 @@ class PatientCellNode: ASCellNode {
     }
     
     private func checkAvgHeartRate() {
+        guard patient.connectionStatus.value == .evaluated else { return }
+        
         if patient.heartRateHistory.count < 5 { return }
         
         let avg = patient.getAverageHeartRate()
@@ -439,6 +475,8 @@ class PatientCellNode: ASCellNode {
     }
     
     private func checkAvgRR() {
+        guard patient.connectionStatus.value == .evaluated else { return }
+        
         if patient.rrHistory.count < 5 { return }
         let avg = patient.getAverageRR()
         
@@ -470,7 +508,7 @@ class PatientCellNode: ASCellNode {
     
     @objc func didTapConnectButton() {
         if patient.connectionStatus.value == .notConnected {
-            patient.connectionStatus.value = .connecting
+            patient.connectionStatus.value = .evaluating
             connectToDevice?()
         }
     }

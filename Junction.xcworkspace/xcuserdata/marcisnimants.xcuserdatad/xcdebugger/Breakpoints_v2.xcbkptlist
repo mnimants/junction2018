@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.380163"
+            timestampString = "564788528.987579"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "114"
-            endingLineNumber = "114"
+            startingLineNumber = "116"
+            endingLineNumber = "116"
             landmarkName = "ChooseDeviceTableNodeController"
             landmarkType = "3">
          </BreakpointContent>
@@ -74,11 +74,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.380752"
+            timestampString = "564788528.988205"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "192"
-            endingLineNumber = "192"
+            startingLineNumber = "195"
+            endingLineNumber = "195"
             landmarkName = "startScan()"
             landmarkType = "7">
          </BreakpointContent>
@@ -90,27 +90,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.38117"
+            timestampString = "564788528.988602"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "235"
-            endingLineNumber = "235"
-            landmarkName = "createPatients()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.381519"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "257"
-            endingLineNumber = "257"
+            startingLineNumber = "282"
+            endingLineNumber = "282"
             landmarkName = "tableNode(_:nodeBlockForRowAt:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -122,11 +106,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.381889"
+            timestampString = "564788528.988975"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "200"
-            endingLineNumber = "200"
+            startingLineNumber = "203"
+            endingLineNumber = "203"
             landmarkName = "connectToDevice(device:patient:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -138,11 +122,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.382241"
+            timestampString = "564788528.989347"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "188"
-            endingLineNumber = "188"
+            startingLineNumber = "191"
+            endingLineNumber = "191"
             landmarkName = "startScan()"
             landmarkType = "7">
          </BreakpointContent>
@@ -172,11 +156,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.382618"
+            timestampString = "564788528.989718"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "244"
-            endingLineNumber = "244"
+            startingLineNumber = "269"
+            endingLineNumber = "269"
             landmarkName = "sendMessage(to:type:)"
             landmarkType = "7">
          </BreakpointContent>
@@ -188,11 +172,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.382967"
+            timestampString = "564788528.990081"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "243"
-            endingLineNumber = "243"
+            startingLineNumber = "268"
+            endingLineNumber = "268"
             landmarkName = "sendMessage(to:type:)"
             landmarkType = "7">
             <Locations>
@@ -236,12 +220,28 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Junction/ChooseDeviceTableNodeController.swift"
-            timestampString = "564785445.383342"
+            timestampString = "564788528.990441"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "380"
-            endingLineNumber = "380"
-            landmarkName = "init(patient:)"
+            startingLineNumber = "253"
+            endingLineNumber = "253"
+            landmarkName = "reorderPatients()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Junction/ChooseDeviceTableNodeController.swift"
+            timestampString = "564788528.990693"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "243"
+            endingLineNumber = "243"
+            landmarkName = "createPatients()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
