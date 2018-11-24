@@ -7,16 +7,27 @@
 //
 
 import UIKit
+import Movesense
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    let movesense = MovesenseService()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        let window = UIWindow(frame: UIScreen.main.bounds)
+        window.backgroundColor = UIColor.white
+        window.rootViewController = UINavigationController(rootViewController: ChooseDeviceTableNodeController())
+        window.makeKeyAndVisible()
+        self.window = window
+        
         return true
+    }
+    
+    /// The single instance of the Movesense service
+    func movesenseInstance() -> MovesenseService {
+        return self.movesense
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -38,9 +49,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationWillTerminate(_ application: UIApplication) {
-        // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        self.movesense.shutdown()
     }
-
-
 }
 

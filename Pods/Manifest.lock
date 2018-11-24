@@ -1,0 +1,87 @@
+PODS:
+  - Alamofire (4.7.3)
+  - Bond (6.10.2):
+    - Differ (~> 1.3)
+    - ReactiveKit (~> 3.9)
+  - Differ (1.3.0)
+  - Movesense (1.28.1)
+  - PINCache (3.0.1-beta.6):
+    - PINCache/Arc-exception-safe (= 3.0.1-beta.6)
+    - PINCache/Core (= 3.0.1-beta.6)
+  - PINCache/Arc-exception-safe (3.0.1-beta.6):
+    - PINCache/Core
+  - PINCache/Core (3.0.1-beta.6):
+    - PINOperation (~> 1.1.0)
+  - PINOperation (1.1.1)
+  - PINRemoteImage/Core (3.0.0-beta.13):
+    - PINOperation
+  - PINRemoteImage/iOS (3.0.0-beta.13):
+    - PINRemoteImage/Core
+  - PINRemoteImage/PINCache (3.0.0-beta.13):
+    - PINCache (= 3.0.1-beta.6)
+    - PINRemoteImage/Core
+  - PromiseKit (6.5.3):
+    - PromiseKit/CorePromise (= 6.5.3)
+    - PromiseKit/Foundation (= 6.5.3)
+    - PromiseKit/UIKit (= 6.5.3)
+  - PromiseKit/CorePromise (6.5.3)
+  - PromiseKit/Foundation (6.5.3):
+    - PromiseKit/CorePromise
+  - PromiseKit/UIKit (6.5.3):
+    - PromiseKit/CorePromise
+  - ReactiveKit (3.9.7)
+  - SwiftyJSON (4.2.0)
+  - Texture (2.7):
+    - Texture/PINRemoteImage (= 2.7)
+  - Texture/Core (2.7)
+  - Texture/PINRemoteImage (2.7):
+    - PINRemoteImage/iOS (= 3.0.0-beta.13)
+    - PINRemoteImage/PINCache
+    - Texture/Core
+
+DEPENDENCIES:
+  - Alamofire (~> 4.7)
+  - Bond
+  - "Movesense (from `ssh://git@altssh.bitbucket.org:443/suunto/movesense-mobile-lib.git`)"
+  - PromiseKit (~> 6.0)
+  - SwiftyJSON (~> 4.0)
+  - Texture
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - Alamofire
+    - Bond
+    - Differ
+    - PINCache
+    - PINOperation
+    - PINRemoteImage
+    - PromiseKit
+    - ReactiveKit
+    - SwiftyJSON
+    - Texture
+
+EXTERNAL SOURCES:
+  Movesense:
+    :git: "ssh://git@altssh.bitbucket.org:443/suunto/movesense-mobile-lib.git"
+
+CHECKOUT OPTIONS:
+  Movesense:
+    :commit: e78baa174a4a980d5aa2a73cb9a10bdc7f00e864
+    :git: "ssh://git@altssh.bitbucket.org:443/suunto/movesense-mobile-lib.git"
+
+SPEC CHECKSUMS:
+  Alamofire: c7287b6e5d7da964a70935e5db17046b7fde6568
+  Bond: 5c9d854fb14d3268496ccaf9b7ccd8428ec1609c
+  Differ: 9fcee7602542d7c6484ce05a0faec1c11258ed63
+  Movesense: a2a8a5d8aa710c61b8191324bac4adbe356550c5
+  PINCache: d195fdba255283f7e9900a55e3cced377f431f9b
+  PINOperation: a6219e6fc9db9c269eb7a7b871ac193bcf400aac
+  PINRemoteImage: d6d51c5d2adda55f1ce30c96e850b6c4ebd2856a
+  PromiseKit: c609029bdd801f792551a504c695c7d3098b42cd
+  ReactiveKit: 5f4c440715d671901c382ae6b42ed3337ce4699b
+  SwiftyJSON: c4bcba26dd9ec7a027fc8eade48e2c911f229e96
+  Texture: 9d7e38965cf22ccd7cd9c249dd78b3f14e70ab6c
+
+PODFILE CHECKSUM: c50ef3385312ee9fb08bf65cc0007671f1d358ba
+
+COCOAPODS: 1.5.0

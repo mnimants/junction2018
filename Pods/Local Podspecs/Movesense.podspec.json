@@ -1,0 +1,30 @@
+{
+  "name": "Movesense",
+  "version": "1.28.1",
+  "summary": "Library for communicating with Movesense-compatible devices over Bluetooth Low Energy",
+  "homepage": "http://www.movesense.com",
+  "license": {
+    "type": "CUSTOM",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "Suunto": "suunto@suunto.com"
+  },
+  "source": {
+    "git": "https://bitbucket.org/suunto/movesense-mobile-lib.git",
+    "tag": "1.25.0"
+  },
+  "platforms": {
+    "ios": "10.0"
+  },
+  "libraries": [
+    "stdc++",
+    "z"
+  ],
+  "swift_version": "3.2",
+  "source_files": [
+    "IOS/Movesense/include/*.h",
+    "IOS/Movesense/swift/*"
+  ],
+  "vendored_libraries": "IOS/Movesense/Release-iphoneos/libmds.a"
+}
