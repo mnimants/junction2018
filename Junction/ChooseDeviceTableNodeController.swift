@@ -36,6 +36,7 @@ class Patient {
     let connectionStatus: Observable<ConnectionStatus> = Observable(ConnectionStatus.notConnected)
     let movesenseDevice: MovesenseDevice
     let bluetoothId: String
+    var criticalSent = false
 
     init(sectorName: String, patientId: String, movesenseDevice: MovesenseDevice, bluetoothId: String) {
         self.sectorName = sectorName
@@ -257,6 +258,8 @@ extension ChooseDeviceTableNodeController: ASTableDelegate, ASTableDataSource {
             }
             
             patientCellNode.criticalState = { state in
+                if patient.criticalSent { return }
+                patient.criticalSent = true
                 self.sendMessage(to: patient, type: "critical")
             }
             return patientCellNode
