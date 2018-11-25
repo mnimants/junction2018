@@ -38,6 +38,7 @@ class Patient {
     let bluetoothId: String
     var criticalSent = false
     var rank: Observable<Int?> = Observable(nil)
+    var discardCount = 5
 
     init(sectorName: String, patientId: String, movesenseDevice: MovesenseDevice, bluetoothId: String) {
         self.sectorName = sectorName
@@ -192,6 +193,7 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
                 self.createPatients()
                 endRefreshing()
             }.done {
+                self.refreshControl!.endRefreshing()
                 print("done")
             }
         } else {
@@ -249,6 +251,7 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
 
     // HARDCODED
     private func reorderPatients() {
+        return;
         let rankForFirstPatient = self.patients[0].rank.value ?? 0
         let rankForSecondPatient = self.patients[1].rank.value ?? 0
         
@@ -402,6 +405,7 @@ class PatientCellNode: ASCellNode {
            
             let graphView = ScrollableGraphView(frame: CGRect(x: -100, y: self.frame.origin.y, width: self.frame.width + 20, height: self.frame.height), dataSource: self)
             let linePlot = LinePlot(identifier: patient.movesenseDevice.serial)
+            graphView.shouldAnimateOnStartup = false
             linePlot.lineStyle = ScrollableGraphViewLineStyle.smooth
             let referenceLines = ReferenceLines()
             referenceLines.shouldShowReferenceLines = false
@@ -429,6 +433,11 @@ class PatientCellNode: ASCellNode {
     }
     
     private func addToHistory(bps: Double) {
+        guard patient.discardCount > 5 else {
+            patient.discardCount += 1
+            return
+        }
+        
         patient.heartRateHistory.append(bps)
         
         if patient.heartRateHistory.count > graphItemsCount {
@@ -441,7 +450,7 @@ class PatientCellNode: ASCellNode {
         DispatchQueue.main.async {
             guard let graphView = self.graphWrapperNode?.view as? ScrollableGraphView else { return }
             
-            graphView.dataPointSpacing = self.frame.width / CGFloat(self.patient.heartRateHistory.count)
+            graphView.dataPointSpacing = self.frame.width / CGFloat(50)
             graphView.rangeMin = (self.patient.heartRateHistory.array.min() ?? 0)
             graphView.rangeMax = (self.patient.heartRateHistory.array.max() ?? 0)
             graphView.reload()
