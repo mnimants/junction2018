@@ -249,15 +249,16 @@ class ChooseDeviceTableNodeController: ASViewController<ASDisplayNode> {
 
     // HARDCODED
     private func reorderPatients() {
-        return;
         let rankForFirstPatient = self.patients[0].rank.value ?? 0
         let rankForSecondPatient = self.patients[1].rank.value ?? 0
         
+        (self.patients[0], self.patients[1]) = (self.patients[1], self.patients[0])
         if rankForSecondPatient > rankForFirstPatient {
             self.tableNode.performBatch(animated: true, updates: {
                 self.tableNode.moveRow(at: IndexPath(row: 1, section: 0), to: IndexPath(row: 0, section: 0))
+                self.tableNode.moveRow(at: IndexPath(row: 0, section: 0), to: IndexPath(row: 1, section: 0))
             }, completion: { completed in
-                (self.patients[0], self.patients[1]) = (self.patients[1], self.patients[0])
+                
             })
         }
     }
